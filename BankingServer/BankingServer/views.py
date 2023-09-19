@@ -18,30 +18,43 @@ import textdistance
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
-def get_bank(request):
-    if request.method == 'GET':
+@csrf_exempt
+def post_bank(request):
+    if request.method == 'POST':
         # 클라이언트로부터 문자열 받기
-        user_input = request.GET.get('voiceBank') #"궁민은행"으로 입력받으면
+        try:
+            request_data = json.loads(request.body.decode('utf-8'))
+            user_input = request_data.get('voice_bank')
+        except json.JSONDecodeError as e:
+            # JSON 디코딩 오류 처리
+            return JsonResponse({"error": "Invalid JSON format"}, status=400)
 
-        # 비교 대상 문자열 목록
-        candidates = ["국민은행", "농협은행", "신한은행", "우리은행", "하나은행"]
-        #"궁민은행"과 제일 비슷한 값을 찾음
+        print("client:", user_input)
 
-        # 가장 가까운 문자열 찾기
-        min_distance = float('inf')  # 최소 거리 초기화
-        closest_candidate = None
+        if user_input is not None:
+            # 비교 대상 문자열 목록
+            candidates = ["국민은행", "신한은행", "우리은행", "하나은행", "농협은행", "기업은행", "토스뱅크", "카카오뱅크"]
+            # "궁민은행"과 제일 비슷한 값을 찾음
 
-        for candidate in candidates:
-            distance = textdistance.levenshtein(user_input, candidate)
-            if distance < min_distance:
-                min_distance = distance
-                closest_candidate = candidate
+            # 가장 가까운 문자열 찾기
+            min_distance = float('inf')  # 최소 거리 초기화
+            closest_candidate = None
 
-        # 결과 리턴
-        response_data = {
-            "closest_bank": closest_candidate,
-        }
-        return JsonResponse(response_data)
+            for candidate in candidates:
+                distance = textdistance.levenshtein(user_input, candidate)
+                if distance < min_distance:
+                    min_distance = distance
+                    closest_candidate = candidate
+
+            print("return", closest_candidate)
+            # 결과 리턴
+            response_data = {
+                "closest_bank": closest_candidate,
+            }
+            return JsonResponse(response_data)
+        else:
+            # 'user_input'이 None인 경우 처리
+            return JsonResponse({"error": "User input is missing."}, status=400)
 
 
 # POST 응답 처리
@@ -83,7 +96,7 @@ def load_resnet_model():
             nn.Dropout(p=0.5),
             nn.Linear(512, 10)
         )
-        resnet.load_state_dict(torch.load('BankingServer/resnetModel/best_resnet34_weights(911).pth'))
+        resnet.load_state_dict(torch.load('BankingServer/resnetModel/best_resnet34_weights(911_v2).pth'))
         resnet.eval()
         model_loaded = True
 
