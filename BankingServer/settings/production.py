@@ -5,7 +5,7 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False # 운영하는 서버에서는 debug가 켜져있을 필요가 없음
 
-ALLOWED_HOSTS = ['192.168.0.6', '192.168.0.17', '127.0.0.1']
+ALLOWED_HOSTS = ['192.168.0.6', '192.168.0.17', '127.0.0.1', '43.200.176.59']
 
 DJANGO_APPS += []
 PROJECT_APPS += []
